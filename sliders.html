@@ -241,7 +241,7 @@
       document.getElementById('dividendLoss').innerText = '$' + dividendLossPerShare.toFixed(2);
       document.getElementById('totalDividendBenefit').innerText = '$' + totalDividendBenefit.toFixed(2);
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
-      document.getElementById('totalExtrapolatedBenefit').innerText = '$' + totalExtrapolatedBenefit.toLocaleString();
+      document.getElementById('totalExtrapolatedBenefit').innerText = totalExtrapolatedBenefit.toLocaleString("en", {style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0});
     }
     // Initialize the UI for the first time
     selectTab('environment');
