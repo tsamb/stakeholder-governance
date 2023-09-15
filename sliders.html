@@ -135,11 +135,10 @@
 
       <p>I would give up <span id="totalLoss">$0.00</span> of capital for <span id="totalBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
 
-
-      <p>I would accept a <span id="dividendLoss">$0.00</span> reduction in dividend for a <span
-        id="dividendBenefitAmt">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would accept a <span id="dividendLoss">$0.00</span> reduction in dividend for a <span id="dividendBenefitAmt">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
       <p>I would give up <span id="totalDividendLoss">$0.00</span> of dividend payments for <span id="totalDividendBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
 
+      <p>If a majority of shareholders agreed, the benefit to <span class="categoryNameDynamic">Environment</span> could be <span id="totalExtrapolatedBenefit">$0</span></p>
     </div>
     <button class="submit-btn">Submit</button>
   </div>
@@ -197,14 +196,15 @@
       document.getElementById('benefitMultiplierSlider').value = categoryValues[category].multiplier;
       document.getElementById('dividendReductionSlider').value = categoryValues[category].dividendReduction;
       document.getElementById('dividendBenefitSlider').value = categoryValues[category].dividendMultiplier;
-      // document.getElementById('categoryName').innerText = category.charAt(0).toUpperCase() + category.slice(1);
       Array.from(document.getElementsByClassName('categoryNameDynamic')).forEach(el => el.innerText = category.charAt(0).toUpperCase() + category.slice(1));
-      // document.getElementById('categoryNameDynamicDividend').innerText = category.charAt(0).toUpperCase() + category.slice(1);
     }
 
     function updateUI() {
       let spotPrice = parseFloat(document.getElementById('spotPrice').value);
       let sharesOwned = parseFloat(document.getElementById('sharesOwned').value);
+      let dividendYield = parseFloat(document.getElementById('dividendYield').value);
+      let sharesOutstanding = parseFloat(document.getElementById('sharesOutstanding').value);
+
       let percentageReduction = parseFloat(document.getElementById('percentageReductionSlider').value);
       let multiplier = parseFloat(document.getElementById('benefitMultiplierSlider').value);
 
@@ -217,14 +217,11 @@
 
       document.getElementById('percentageReductionValue').innerText = percentageReduction + '%';
       document.getElementById('multiplierValue').innerText = multiplier + 'x';
-      // document.getElementById('reducedPrice').innerText = '$' + reducedPrice.toFixed(2);
       document.getElementById('priceLoss').innerText = '$' + priceLossPerShare.toFixed(2);
       document.getElementById('benefitAmt').innerText = '$' + benefitPerShare.toFixed(2);
-      // document.getElementById('capitalLoss').innerText = '$' + priceLossPerShare.toFixed(2);
       document.getElementById('totalBenefit').innerText = '$' + totalBenefit.toFixed(2);
       document.getElementById('totalLoss').innerText = '$' + totalLoss.toFixed(2);
 
-      let dividendYield = parseFloat(document.getElementById('dividendYield').value);
       let dividendReduction = constrainDividendSliders(parseFloat(document.getElementById('dividendReductionSlider').value));
       let dividendMultiplier = parseFloat(document.getElementById('dividendBenefitSlider').value);
 
@@ -236,13 +233,15 @@
       let totalDividendLoss = dividendLossPerShare * sharesOwned;
       let totalDividendBenefit = dividendBenefitPerShare * sharesOwned;
 
+      let totalExtrapolatedBenefit = (dividendBenefitPerShare + benefitPerShare) * sharesOutstanding;
+
       document.getElementById('dividendReductionValue').innerText = dividendReduction + '%';
       document.getElementById('dividendMultiplierValue').innerText = dividendMultiplier + 'x';
-      // document.getElementById('reducedDividend').innerText = '$' + reducedDividendAmount.toFixed(2);
       document.getElementById('dividendBenefitAmt').innerText = '$' + dividendBenefitPerShare.toFixed(2);
       document.getElementById('dividendLoss').innerText = '$' + dividendLossPerShare.toFixed(2);
       document.getElementById('totalDividendBenefit').innerText = '$' + totalDividendBenefit.toFixed(2);
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
+      document.getElementById('totalExtrapolatedBenefit').innerText = '$' + totalExtrapolatedBenefit.toLocaleString();
     }
     // Initialize the UI for the first time
     selectTab('environment');
