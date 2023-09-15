@@ -14,7 +14,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 700px;
       background-color: #fff;
       margin: 50px auto;
       padding: 20px;
@@ -86,7 +86,7 @@
     <h1>Stock Value Trade-off</h1>
     <div>
       <label>Spot Price ($): </label>
-      <input type="number" id="spotPrice" value="100" onchange="updateUI()">
+      <input type="number" id="spotPrice" value="174" onchange="updateUI()">
     </div>
 
     <div>
@@ -96,7 +96,12 @@
 
     <div>
       <label>Dividend Yield (%): </label>
-      <input type="number" id="dividendYield" value="2" onchange="updateUI()">
+      <input type="number" id="dividendYield" value="0.54" onchange="updateUI()">
+    </div>
+
+    <div>
+      <label>Shares outstanding </label>
+      <input type="number" id="sharesOutstanding" value="15630000000" onchange="updateUI()">
     </div>
 
     <div class="tabs">
@@ -109,10 +114,10 @@
 
     <div class="slider-container">
       <label>Acceptable share value reduction: <span id="percentageReductionValue">0%</span></label>
-      <input type="range" min="0" max="100" value="0" step="0.1" class="slider" id="percentageReductionSlider"
+      <input type="range" min="0" max="10" value="0" step="0.1" class="slider" id="percentageReductionSlider"
         oninput="updateUI()">
 
-      <label>Share value trade-off multiplier for benefit to <span id="categoryName">Environment</span>: <span
+      <label>Share value trade-off multiplier for benefit to <span class="categoryNameDynamic">Environment</span>: <span
           id="multiplierValue">1.0x</span></label>
       <input type="range" min="1" max="2" value="1" step="0.1" class="slider" id="benefitMultiplierSlider"
         oninput="updateUI()">
@@ -121,23 +126,20 @@
       <input type="range" min="0" max="100" value="0" step="0.1" class="slider" id="dividendReductionSlider"
         oninput="updateUI()">
 
-      <label>Dividend trade-off multiplier for benefit to <span id="categoryName">Environment</span>: <span
+      <label>Dividend trade-off multiplier for benefit to <span class="categoryNameDynamic">Environment</span>: <span
           id="dividendMultiplierValue">1.0x</span></label>
       <input type="range" min="1" max="2" value="1" step="0.1" class="slider" id="dividendBenefitSlider"
         oninput="updateUI()">
 
-      <p>Reduced Share Price: <span id="reducedPrice">$100.00</span> for a loss of <span id="priceLoss">$0.00</span> per
-        share</p>
-      <p>Benefit to <span id="categoryNameDynamic">Environment</span>: <span id="benefitAmt">$0.00</span> for a capital
-        loss of <span id="capitalLoss">$0.00</span></p>
-      <p>Total Capital Benefit: <span id="totalBenefit">$0.00</span> for a total capital loss of <span
-          id="totalLoss">$0.00</span></p>
+      <p>I would accept a <span id="priceLoss">$0.00</span> drop in share value for a <span id="benefitAmt">$0.00</span> per share benefit to <span class="categoryNameDynamic">Environment</span></p>
 
-      <p>Reduced Dividend: <span id="reducedDividend">0%</span></p>
-      <p>Benefit to <span id="categoryNameDynamicDividend">Environment</span> from Dividend: <span
-          id="dividendBenefitAmt">$0.00</span> for a dividend reduction of <span id="dividendLoss">$0.00</span></p>
-      <p>Total Dividend Benefit: <span id="totalDividendBenefit">$0.00</span> for a total dividend reduction of <span
-          id="totalDividendLoss">$0.00</span></p>
+      <p>I would give up <span id="totalLoss">$0.00</span> of capital for <span id="totalBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+
+
+      <p>I would accept a <span id="dividendLoss">$0.00</span> reduction in dividend for a <span
+        id="dividendBenefitAmt">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would give up <span id="totalDividendLoss">$0.00</span> of dividend payments for <span id="totalDividendBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+
     </div>
     <button class="submit-btn">Submit</button>
   </div>
@@ -152,6 +154,21 @@
       community: { percentageReduction: 0, multiplier: 1, dividendReduction: 0, dividendMultiplier: 1 },
       creditors: { percentageReduction: 0, multiplier: 1, dividendReduction: 0, dividendMultiplier: 1 }
     };
+
+    function constrainDividendSliders(targetValue) {
+      let totalDividend = 0;
+      for (let category in categoryValues) {
+        if (category !== selectedCategory) {
+          totalDividend += parseFloat(categoryValues[category].dividendReduction);
+        }
+      }
+
+      let maxDividendReduction = 100 - totalDividend;
+      let constrainedDividendReduction = (targetValue > maxDividendReduction ? maxDividendReduction : targetValue).toFixed(1);
+      categoryValues[selectedCategory].dividendReduction = constrainedDividendReduction;
+      document.getElementById('dividendReductionSlider').value = constrainedDividendReduction;
+      return constrainedDividendReduction;
+    }
 
     function selectTab(category) {
       updateCurrentCategoryValues();
@@ -180,9 +197,9 @@
       document.getElementById('benefitMultiplierSlider').value = categoryValues[category].multiplier;
       document.getElementById('dividendReductionSlider').value = categoryValues[category].dividendReduction;
       document.getElementById('dividendBenefitSlider').value = categoryValues[category].dividendMultiplier;
-      document.getElementById('categoryName').innerText = category.charAt(0).toUpperCase() + category.slice(1);
-      document.getElementById('categoryNameDynamic').innerText = category.charAt(0).toUpperCase() + category.slice(1);
-      document.getElementById('categoryNameDynamicDividend').innerText = category.charAt(0).toUpperCase() + category.slice(1);
+      // document.getElementById('categoryName').innerText = category.charAt(0).toUpperCase() + category.slice(1);
+      Array.from(document.getElementsByClassName('categoryNameDynamic')).forEach(el => el.innerText = category.charAt(0).toUpperCase() + category.slice(1));
+      // document.getElementById('categoryNameDynamicDividend').innerText = category.charAt(0).toUpperCase() + category.slice(1);
     }
 
     function updateUI() {
@@ -200,15 +217,15 @@
 
       document.getElementById('percentageReductionValue').innerText = percentageReduction + '%';
       document.getElementById('multiplierValue').innerText = multiplier + 'x';
-      document.getElementById('reducedPrice').innerText = '$' + reducedPrice.toFixed(2);
+      // document.getElementById('reducedPrice').innerText = '$' + reducedPrice.toFixed(2);
       document.getElementById('priceLoss').innerText = '$' + priceLossPerShare.toFixed(2);
       document.getElementById('benefitAmt').innerText = '$' + benefitPerShare.toFixed(2);
-      document.getElementById('capitalLoss').innerText = '$' + priceLossPerShare.toFixed(2);
+      // document.getElementById('capitalLoss').innerText = '$' + priceLossPerShare.toFixed(2);
       document.getElementById('totalBenefit').innerText = '$' + totalBenefit.toFixed(2);
       document.getElementById('totalLoss').innerText = '$' + totalLoss.toFixed(2);
 
       let dividendYield = parseFloat(document.getElementById('dividendYield').value);
-      let dividendReduction = parseFloat(document.getElementById('dividendReductionSlider').value);
+      let dividendReduction = constrainDividendSliders(parseFloat(document.getElementById('dividendReductionSlider').value));
       let dividendMultiplier = parseFloat(document.getElementById('dividendBenefitSlider').value);
 
       let actualDividendAmount = (dividendYield / 100) * spotPrice;
@@ -221,13 +238,12 @@
 
       document.getElementById('dividendReductionValue').innerText = dividendReduction + '%';
       document.getElementById('dividendMultiplierValue').innerText = dividendMultiplier + 'x';
-      document.getElementById('reducedDividend').innerText = '$' + reducedDividendAmount.toFixed(2);
+      // document.getElementById('reducedDividend').innerText = '$' + reducedDividendAmount.toFixed(2);
       document.getElementById('dividendBenefitAmt').innerText = '$' + dividendBenefitPerShare.toFixed(2);
       document.getElementById('dividendLoss').innerText = '$' + dividendLossPerShare.toFixed(2);
       document.getElementById('totalDividendBenefit').innerText = '$' + totalDividendBenefit.toFixed(2);
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
     }
-
     // Initialize the UI for the first time
     selectTab('environment');
   </script>
