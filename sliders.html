@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shareholder Welfare Maximizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -82,6 +83,13 @@
     .submit-btn:hover {
       background-color: #555;
     }
+
+    .chart-container {
+      width: 100%;
+      height: 300px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 
@@ -135,17 +143,28 @@
       <input type="range" min="1" max="2" value="1" step="0.1" class="slider" id="dividendBenefitSlider"
         oninput="updateUI()">
 
-      <p>I would accept a <span id="priceLoss">$0.00</span> drop in share value for a <span id="benefitAmt">$0.00</span> per share benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would accept a <span id="priceLoss">$0.00</span> drop in share value for a <span id="benefitAmt">$0.00</span>
+        per share benefit to <span class="categoryNameDynamic">Environment</span></p>
 
-      <p>I would give up <span id="totalLoss">$0.00</span> of capital for <span id="totalBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would give up <span id="totalLoss">$0.00</span> of capital for <span id="totalBenefit">$0.00</span> benefit
+        to <span class="categoryNameDynamic">Environment</span></p>
 
-      <p>I would accept a <span id="dividendLoss">$0.00</span> reduction in dividend for a <span id="dividendBenefitAmt">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
-      <p>I would give up <span id="totalDividendLoss">$0.00</span> of dividend payments for <span id="totalDividendBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would accept a <span id="dividendLoss">$0.00</span> reduction in dividend for a <span
+          id="dividendBenefitAmt">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
+      <p>I would give up <span id="totalDividendLoss">$0.00</span> of dividend payments for <span
+          id="totalDividendBenefit">$0.00</span> benefit to <span class="categoryNameDynamic">Environment</span></p>
 
-      <p>If a majority of shareholders agreed, the benefit to <span class="categoryNameDynamic">Environment</span> could be <span id="totalExtrapolatedBenefit">$0</span></p>
+      <p>If a majority of shareholders agreed, the benefit to <span class="categoryNameDynamic">Environment</span> could
+        be <span id="totalExtrapolatedBenefit">$0</span></p>
+    </div>
+    <div class="chart-container">
+      <canvas id="dividendChart"></canvas>
     </div>
     <button class="submit-btn">Submit</button>
-    <p><i>Note: this experimental user interface prototypes and extends ideas from Hart and Zingales' 2022 papers "<a href="https://scholar.harvard.edu/hart/publications/new-corporate-governance" target="_blank">The New Corporate Governance</a>" and "<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3680815" target="blank">Exit vs. Voice</a>" (with Broccardo, 2022).</i></p>
+    <p><i>Note: this experimental user interface prototypes and extends ideas from Hart and Zingales' 2022 papers "<a
+          href="https://scholar.harvard.edu/hart/publications/new-corporate-governance" target="_blank">The New
+          Corporate Governance</a>" and "<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3680815"
+          target="blank">Exit vs. Voice</a>" (with Broccardo, 2022).</i></p>
   </div>
 
   <script>
@@ -158,6 +177,51 @@
       community: { percentageReduction: 0, multiplier: 1, dividendReduction: 0, dividendMultiplier: 1 },
       creditors: { percentageReduction: 0, multiplier: 1, dividendReduction: 0, dividendMultiplier: 1 }
     };
+
+    let chartColors = ['#99E699', '#C266FF', '#FF9999', '#66B2FF', '#33CCCC', '#FFCC66']
+    let dividendChart = function () {
+      return new Chart(document.getElementById('dividendChart'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(categoryValues).concat('original dividend'),
+          datasets: [{
+            data: Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction)),
+            backgroundColor: chartColors
+          }]
+        },
+        options: {
+          title: {
+            display: true,
+            text: 'Dividend Reductions'
+          },
+          animation: {
+            duration: 0,
+          },
+          plugins: {
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    return context.formattedValue + '%';  // Appends the percentage sign to the value
+                }
+            }
+        }
+    }
+        }
+      });
+    }();
+
+    function updateCharts() {
+      let data = Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction))
+      data.push(100 - data.reduce((sum, num) => sum + num, 0))
+      dividendChart.data = {
+        labels: Object.keys(categoryValues).concat('original dividend'),
+        datasets: [{
+          data: data,
+          backgroundColor: chartColors
+        }]
+      };
+      dividendChart.update();
+    }
 
     function constrainDividendSliders(targetValue) {
       let totalDividend = 0;
@@ -246,7 +310,9 @@
       document.getElementById('dividendLoss').innerText = '$' + dividendLossPerShare.toFixed(2);
       document.getElementById('totalDividendBenefit').innerText = '$' + totalDividendBenefit.toFixed(2);
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
-      document.getElementById('totalExtrapolatedBenefit').innerText = totalExtrapolatedBenefit.toLocaleString("en", {style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0});
+      document.getElementById('totalExtrapolatedBenefit').innerText = totalExtrapolatedBenefit.toLocaleString("en", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+      updateCharts();
     }
     // Initialize the UI for the first time
     selectTab('environment');
