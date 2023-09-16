@@ -78,6 +78,7 @@
       border: none;
       cursor: pointer;
       transition: background-color 0.3s;
+      clear: both;
     }
 
     .submit-btn:hover {
@@ -85,11 +86,20 @@
     }
 
     .chart-container {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      align-items: flex-start;
       width: 100%;
-      height: 300px;
       margin-top: 20px;
       margin-bottom: 20px;
     }
+
+    @media (min-width: 768px) {
+   .chart-container {
+      height: 350px;
+   }
+}
   </style>
 </head>
 
@@ -158,7 +168,8 @@
         be <span id="totalExtrapolatedBenefit">$0</span></p>
     </div>
     <div class="chart-container">
-      <canvas id="dividendChart"></canvas>
+      <canvas class="chart" id="dividendChart"></canvas>
+      <canvas class="chart" id="capitalChart"></canvas>
     </div>
     <button class="submit-btn">Submit</button>
     <p><i>Note: this experimental user interface prototypes and extends ideas from Hart and Zingales' 2022 papers "<a
@@ -179,25 +190,26 @@
     };
 
     let chartColors = ['#99E699', '#C266FF', '#FF9999', '#66B2FF', '#33CCCC', '#FFCC66']
-    let dividendChart = function () {
-      return new Chart(document.getElementById('dividendChart'), {
+
+    function buildChart(title, chartID, dataset, attribute, defaultLabel) {
+      let obj = new Chart(document.getElementById(chartID), {
         type: 'doughnut',
         data: {
-          labels: Object.keys(categoryValues).concat('original dividend'),
+          labels: Object.keys(dataset).concat(defaultLabel),
           datasets: [{
-            data: Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction)),
+            data: Object.keys(dataset).map(cat => parseFloat(categoryValues[cat][attribute])),
             backgroundColor: chartColors
           }]
         },
         options: {
-          title: {
-            display: true,
-            text: 'Dividend Reductions'
-          },
           animation: {
             duration: 0,
           },
           plugins: {
+            title: {
+              display: true,
+              text: title
+            },
             tooltip: {
               callbacks: {
                 label: function (context) {
@@ -208,19 +220,45 @@
           }
         }
       });
-    }();
+      return { obj: obj, attribute: attribute, defaultLabel: defaultLabel }
+    }
 
-    function updateCharts() {
-      let data = Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction))
-      data.push(100 - data.reduce((sum, num) => sum + num, 0))
-      dividendChart.data = {
-        labels: Object.keys(categoryValues).concat('original dividend'),
+    let dividendChart = buildChart(
+      "Dividend Reductions",
+      "dividendChart",
+      categoryValues,
+      "dividendReduction",
+      "original dividend"
+      // Object.keys(categoryValues).concat("original dividend"),
+      // Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction))
+    )
+
+    let capitalChart = buildChart(
+      "Capital Value Reductions",
+      "capitalChart",
+      categoryValues,
+      "percentageReduction",
+      "original share value"
+    )
+
+    function chartData(dataset, attribute) {
+      let data = Object.keys(dataset).map(cat => parseFloat(dataset[cat][attribute]));
+      return data.concat(100 - data.reduce((sum, num) => sum + num, 0));
+    }
+
+    function chartLabels(dataset, defaultName) {
+      return Object.keys(dataset).concat(defaultName);
+    }
+
+    function updateCharts(chart, data, labels) {
+      chart.data = {
+        labels: labels,
         datasets: [{
           data: data,
           backgroundColor: chartColors
         }]
       };
-      dividendChart.update();
+      chart.update();
     }
 
     function constrainDividendSliders(targetValue) {
@@ -269,6 +307,8 @@
     }
 
     function updateUI() {
+      updateCurrentCategoryValues();
+
       let spotPrice = parseFloat(document.getElementById('spotPrice').value);
       let sharesOwned = parseFloat(document.getElementById('sharesOwned').value);
       let dividendYield = parseFloat(document.getElementById('dividendYield').value);
@@ -312,7 +352,14 @@
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
       document.getElementById('totalExtrapolatedBenefit').innerText = totalExtrapolatedBenefit.toLocaleString("en", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-      updateCharts();
+
+      [dividendChart, capitalChart].forEach(chart => {
+        updateCharts(
+          chart.obj,
+          chartData(categoryValues, chart.attribute),
+          chartLabels(categoryValues, chart.defaultLabel)
+        );
+      })
     }
     // Initialize the UI for the first time
     selectTab('environment');
