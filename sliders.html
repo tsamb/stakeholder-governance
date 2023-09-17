@@ -192,6 +192,7 @@
     let chartColors = ['#99E699', '#C266FF', '#FF9999', '#66B2FF', '#33CCCC', '#FFCC66']
 
     function buildChart(title, chartID, dataset, attribute, defaultLabel) {
+      let chartColors = ['#99E699', '#C266FF', '#FF9999', '#66B2FF', '#33CCCC', '#FFCC66'];
       let obj = new Chart(document.getElementById(chartID), {
         type: 'doughnut',
         data: {
@@ -249,6 +250,7 @@
     }
 
     function updateCharts(chart, data, labels) {
+      let chartColors = ['#99E699', '#C266FF', '#FF9999', '#66B2FF', '#33CCCC', '#FFCC66'];
       chart.data = {
         labels: labels,
         datasets: [{
