@@ -229,8 +229,6 @@
       categoryValues,
       "dividendReduction",
       "original dividend"
-      // Object.keys(categoryValues).concat("original dividend"),
-      // Object.keys(categoryValues).map(cat => parseFloat(categoryValues[cat].dividendReduction))
     )
 
     let capitalChart = buildChart(
@@ -351,7 +349,6 @@
       document.getElementById('totalDividendBenefit').innerText = '$' + totalDividendBenefit.toFixed(2);
       document.getElementById('totalDividendLoss').innerText = '$' + totalDividendLoss.toFixed(2);
       document.getElementById('totalExtrapolatedBenefit').innerText = totalExtrapolatedBenefit.toLocaleString("en", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
 
       [dividendChart, capitalChart].forEach(chart => {
         updateCharts(
