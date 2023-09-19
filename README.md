@@ -1,5 +1,7 @@
 # Shareholder welfare maximizer
 
+[Live link to proof of concept here.](https://www.samuelrblackman.com/stakeholders/)
+
 Whether corporations can benefit stakeholders' interests beyond shareholders' interests is an open question. Is there a positive role corporations can play in benefitting employees, suppliers, creditors, their communities and the environment beyond the amount those benefits already factor into maximizing shareholder value? Or are corporations legally and culturally locked into an inevitable cycle of financial shareholder value maximization?
 
 Arguably, many shareholders today care about those other stakeholders. Some shareholders would give up financial gain, whether in share value or dividend payments, if the amount they gave up could be channeled to other stakeholders. However, many shareholders do not understand their rights and exercising those rights is difficult. Given this, shareholders rarely voice their interests to corporate leaders.
